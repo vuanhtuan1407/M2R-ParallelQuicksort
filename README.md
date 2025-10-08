@@ -11,3 +11,4 @@ The [journal](journal.org) contains all information and experimental reports.
 As I am not familiar with Org-mode, I decided to use R project to take my notes.
 
 1. I re-ran the code following the instructions and made some minor code corrections.
+(See ./Report_2025-10-08.html)
