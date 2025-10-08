@@ -38,6 +38,11 @@ A simple makefile with various compilation options is provided in the `src/` dir
 make -C src/
 #+END_SRC
 
+#+RESULTS:
+| make: | Entering            | directory | '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src' |    |       |
+| make: | 'parallelQuicksort' | is        | up                                                                     | to | date. |
+| make: | Leaving             | directory | '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src' |    |       |
+
 Compilation produces the parallel Quicksort executable along with object files.
 
 ** Running the code
@@ -78,24 +83,31 @@ Times are reported in seconds.
 
 Then, I follow the instruction of first series of experiments. I ran the three algorithms with varying array sizes, repeating each measurement 5 times.
 
-#+BEGIN_SRC bash :exports both
+#+BEGIN_SRC bash :results output :exports both
 bash ./scripts/run_benchmarking.sh
 #+END_SRC
+
+#+RESULTS:
 
 Experimental results were saved in `.txt` files for further analysis.
 
 A substep should be done before plotting to parse `.txt` file to `.csv` file:
 
-#+BEGIN_SRC bash :exports both
-perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-08/measurements_17\:43.txt > data/THINKBOOK_2025-10-08/measurements_17\:43.csv
+#+BEGIN_SRC sh :results output :exports both
+perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-08/measurements_22\:03.txt > data/THINKBOOK_2025-10-08/measurements_22\:03.csv
 #+END_SRC
+
+#+RESULTS:
 
 Parsed results were visualized using R.
 
-#+BEGIN_SRC R :exports both
-df <- read.csv("data/THINKBOOK_2025-10-08/measurements_17:43.csv",header=T)
+#+begin_src R :results graphics file :file data/THINKBOOK_2025-10-08/mearsurements-22:03.png :exports both :width 600 :height 400 :session
+df <- read.csv("data/THINKBOOK_2025-10-08/measurements_22:03.csv",header=T)
 plot(df$Size,df$Time,col=c("red","blue","green")[df$Type])
-#+END_SRC
+#+end_src
+
+ #+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/mearsurements-22:03.png]]
 
 Unfortunately, there is no point being plotted in the figure.
 
@@ -107,11 +119,14 @@ colors <- c(" Sequential" = "red", " Parallel" = "blue", " Built-in" = "green")
 
 Then, run again.
 
-#+BEGIN_SRC R :exports both
-df <- read.csv("data/THINKBOOK_2025-10-08/measurements_17:43.csv",header=T)
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/measurements-22:03_updated.png :exports both :width 600 :height 400 :session
+df <- read.csv("data/THINKBOOK_2025-10-08/measurements_22:03.csv",header=T)
 colors <- c(" Sequential" = "red", " Parallel" = "blue", " Built-in" = "green")
 plot(df$Size,df$Time,col=colors[df$Type])
 #+END_SRC
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/measurements-22:03_updated.png]]
 
 The points now appear in the figure.
 
@@ -121,7 +136,7 @@ A basic plot shows how execution time varies with array size for the sequential,
 
 An alternative visualization using gnuplot.
 
-#+BEGIN_SRC sh :exports both
+#+BEGIN_SRC sh :results output raw :exports both
 FILENAME="data/THINKBOOK_2025-10-08/measurements_17:43"
 perl scripts/csv_quicksort_extractor2.pl < "$FILENAME.txt" > "${FILENAME}_wide.csv"
 echo "
@@ -133,6 +148,9 @@ echo "
 " | gnuplot
 echo [[file:${FILENAME}_wide.png]]
 #+END_SRC
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/measurements_17:43_wide.png]]
 
 *Notes:* Check whether the `gnuplot` package exists before execution, as it is not automatically installed on Ubuntu 24.04.3 LTS. A base package is enough to use in this project.
 

@@ -51,8 +51,8 @@ src/parallelQuicksort
 cache/
 *.utf8.md
 *.knit.md
-# *.html
-# *.pdf
+*.html
+*.pdf
 
 # R environment variables
 .Renviron
