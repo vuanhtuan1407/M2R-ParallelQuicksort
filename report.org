@@ -34,14 +34,17 @@ Notes: This command may be omitted, as the subsequent commands will automaticall
 
 A simple makefile with various compilation options is provided in the `src/` directory. Compilation is thus done by running:
 
-#+BEGIN_SRC sh :exports both
+#+BEGIN_SRC sh :results output :exports both
 make -C src/
 #+END_SRC
 
 #+RESULTS:
-| make: | Entering            | directory | '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src' |    |       |
-| make: | 'parallelQuicksort' | is        | up                                                                     | to | date. |
-| make: | Leaving             | directory | '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src' |    |       |
+: make: Entering directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
+: make: 'parallelQuicksort' is up to date.
+: make: Leaving directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
+make: Entering directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
+make: 'parallelQuicksort' is up to date.
+make: Leaving directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
 
 Compilation produces the parallel Quicksort executable along with object files.
 
@@ -137,7 +140,7 @@ A basic plot shows how execution time varies with array size for the sequential,
 An alternative visualization using gnuplot.
 
 #+BEGIN_SRC sh :results output raw :exports both
-FILENAME="data/THINKBOOK_2025-10-08/measurements_17:43"
+FILENAME="data/THINKBOOK_2025-10-08/measurements_22:03"
 perl scripts/csv_quicksort_extractor2.pl < "$FILENAME.txt" > "${FILENAME}_wide.csv"
 echo "
   set terminal png size 600,400 
@@ -150,7 +153,7 @@ echo [[file:${FILENAME}_wide.png]]
 #+END_SRC
 
 #+RESULTS:
-[[file:data/THINKBOOK_2025-10-08/measurements_17:43_wide.png]]
+[[file:data/THINKBOOK_2025-10-08/measurements_22:03_wide.png]]
 
 *Notes:* Check whether the `gnuplot` package exists before execution, as it is not automatically installed on Ubuntu 24.04.3 LTS. A base package is enough to use in this project.
 
