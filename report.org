@@ -72,6 +72,9 @@ Times are reported in seconds.
 #+END_SRC
 
 #+RESULTS:
+| Sequential | quicksort | took: | 0.156653 | sec. |
+| Parallel   | quicksort | took: | 0.193988 | sec. |
+| Built-in   | quicksort | took: | 0.126658 | sec. |
 
 Then, I follow the instruction of first series of experiments. I ran the three algorithms with varying array sizes, repeating each measurement 5 times.
 
