@@ -42,9 +42,6 @@ make -C src/
 : make: Entering directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
 : make: 'parallelQuicksort' is up to date.
 : make: Leaving directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
-make: Entering directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
-make: 'parallelQuicksort' is up to date.
-make: Leaving directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
 
 Compilation produces the parallel Quicksort executable along with object files.
 
@@ -75,14 +72,14 @@ Times are reported in seconds.
 -   The initial implementation was obtained from [[http://sc12.supercomputing.org/hpceducator/PythonForParallelism/codes/parallelQuicksort.c][SC12 HPC Educator]]. The original author is Joshua Stough from Washington and Lee University and the modified version from [[https://github.com/alegrand/M2R-ParallelQuicksort][Arnaud Legrand Github]].
 -   Typical first execution on my laptop (Intel i5-12500H, Ubuntu 24.04.3 LTS Linux 6.14.0-33-generic) showed *the sequential version ran faster than the parallel one.*
 
-#+BEGIN_SRC sh :exports both
+#+BEGIN_SRC sh :results output :exports both
 ./src/parallelQuicksort
 #+END_SRC
 
 #+RESULTS:
-| Sequential | quicksort | took: | 0.156653 | sec. |
-| Parallel   | quicksort | took: | 0.193988 | sec. |
-| Built-in   | quicksort | took: | 0.126658 | sec. |
+: Sequential quicksort took: 0.124899 sec.
+: Parallel quicksort took: 0.168245 sec.
+: Built-in quicksort took: 0.122823 sec.
 
 Then, I follow the instruction of first series of experiments. I ran the three algorithms with varying array sizes, repeating each measurement 5 times.
 
