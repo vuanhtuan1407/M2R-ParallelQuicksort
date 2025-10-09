@@ -65,9 +65,9 @@ Times are reported in seconds.
 
 * Experimental Reports
 
-** 2025-10-08 (VU Anh Tuan)
+** 2025-10-08
 
-*** Initial code executation
+*** Initial code executation (VU Anh Tuan)
 
 -   The initial implementation was obtained from [[http://sc12.supercomputing.org/hpceducator/PythonForParallelism/codes/parallelQuicksort.c][SC12 HPC Educator]]. The original author is Joshua Stough from Washington and Lee University and the modified version from [[https://github.com/alegrand/M2R-ParallelQuicksort][Arnaud Legrand Github]].
 -   Typical first execution on my laptop (Intel i5-12500H, Ubuntu 24.04.3 LTS Linux 6.14.0-33-generic) showed *the sequential version ran faster than the parallel one.*
@@ -160,3 +160,276 @@ sudo apt install gnuplot-nox
 #+END_SRC
 
 *Conclusion:* I noticed that my results differ somewhat from those provided in the instructions. This variation is probably due to differences in CPU architecture, as I am using an i5 processor (while the instructions were based on an i7).
+
+*** Improve R plot
+
+**** Issues with original plots
+
+- Steps for sizes are poorly distributed, making it unclear what happens in between.
+- Plot captions are bad (titles, legend etc).
+- Axis labels are bad (overlapping etc)
+- Line fitting is not helpful (weird segmented line)
+
+**** Load required libraries
+
+#+BEGIN_SRC R :results output :exports both :session
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(nlstools)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Need help? Try Stackoverflow: https://stackoverflow.com/tags/ggplot2
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+'nlstools' has been loaded.
+
+IMPORTANT NOTICE: Most nonlinear regression models and data set examples
+related to predictive microbiolgy have been moved to the package 'nlsMicrobio'
+#+end_example
+
+**** Load and inspect data
+
+#+BEGIN_SRC R :results output :exports both :session
+data <- read.csv("data/THINKBOOK_2025-10-08/measurements_22:03_wide.csv")
+head(data)
+#+END_SRC
+
+#+RESULTS:
+:   Size      Seq      Par     Libc
+: 1  100 0.000018 0.012145 0.000021
+: 2  100 0.000019 0.012331 0.000021
+: 3  100 0.000018 0.011518 0.000019
+: 4  100 0.000020 0.013219 0.000022
+: 5  100 0.000018 0.010905 0.000019
+: 6 1000 0.000249 0.053670 0.000279
+
+**** Convert to long format
+
+#+BEGIN_SRC R :results output :exports both :session
+# Convert to long format
+data_long <- pivot_longer(data, cols = c("Seq", "Par", "Libc"),
+                          names_to = "Method", values_to = "Time")
+head(data_long)
+#+END_SRC
+
+#+RESULTS:
+: [38;5;246m# A tibble: 6 × 3[39m
+:    Size Method     Time
+:   [3m[38;5;246m<int>[39m[23m [3m[38;5;246m<chr>[39m[23m     [3m[38;5;246m<dbl>[39m[23m
+: [38;5;250m1[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m8[24m
+: [38;5;250m2[39m   100 Par    0.012[4m1[24m  
+: [38;5;250m3[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+: [38;5;250m4[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m9[24m
+: [38;5;250m5[39m   100 Par    0.012[4m3[24m  
+: [38;5;250m6[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+
+**** Initial plot with linear scale
+
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/plot1.png :exports both :width 600 :height 400 :session
+ggplot(data_long, aes(x = Size, y = Time, color = Method)) +
+  geom_point(size = 1) +
+  labs(
+    title = "Performance by Method",
+    x = "Size",
+    y = "Time (seconds)"
+  ) +
+  scale_x_continuous(breaks = c(1, 10, 100, 1000, 10000, 100000, 1000000, 950000)) + 
+  theme_minimal()
+#+END_SRC
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/plot1.png]]
+
+Not readable with linear scale, logarithmic needed.
+
+**** Plot with discrete x-axis
+
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/plot2.png :exports both :width 600 :height 400 :session
+ggplot(data_long, aes(x = factor(Size), y = Time, color = Method)) +
+  geom_point(size = 1) +
+  scale_color_discrete(
+    name = "Algorithm",           
+    labels = c("Sequential", "Parallel", "Libc")  
+  ) +  
+  labs(
+    title = "Performance by Method",
+    x = "Size",
+    y = "Time (seconds)"
+  ) +
+  scale_x_discrete(breaks = c(1, 10, 100, 1000, 10000, 100000, 1000000, 950000)) + 
+  theme_minimal()
+#+END_SRC
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/plot2.png]]
+
+Sequential and libc implementation we have similar times, for larger data algorithms becomes way slower with bigger sizes, parallel scales nicely :D
+
+**** Plot with mean and standard deviation
+
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/plot3.png :exports both :width 600 :height 400 :session
+ggplot(data_long, aes(x = factor(Size), y = Time, color = Method)) +
+  stat_summary(fun = mean, geom = "point", size = 1) +          
+  stat_summary(fun.data = mean_sdl, geom = "errorbar", width = 0.2) + 
+  scale_color_discrete(
+    name = "Algorithm",           
+    labels = c("Sequential", "Parallel", "Libc")  
+  ) +  
+  labs(
+    title = "Performance by Method (Mean ± SD)",
+    x = "Size",
+    y = "Time (seconds)"
+  ) +
+  scale_x_discrete(breaks = c(1, 10, 100, 1000, 10000, 100000, 1000000, 95000)) + 
+  theme_minimal()
+#+END_SRC
+
+**** Filter data for smaller sizes
+
+#+BEGIN_SRC R :results output :exports both :session
+data_long
+colnames(data_long)
+data_filtered <- data_long %>%
+  filter(Size <= 95000)
+data_filtered
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[38;5;246m# A tibble: 75 × 3[39m
+    Size Method     Time
+   [3m[38;5;246m<int>[39m[23m [3m[38;5;246m<chr>[39m[23m     [3m[38;5;246m<dbl>[39m[23m
+[38;5;250m 1[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m8[24m
+[38;5;250m 2[39m   100 Par    0.012[4m1[24m  
+[38;5;250m 3[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+[38;5;250m 4[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m9[24m
+[38;5;250m 5[39m   100 Par    0.012[4m3[24m  
+[38;5;250m 6[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+[38;5;250m 7[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m8[24m
+[38;5;250m 8[39m   100 Par    0.011[4m5[24m  
+[38;5;250m 9[39m   100 Libc   0.000[4m0[24m[4m1[24m[4m9[24m
+[38;5;250m10[39m   100 Seq    0.000[4m0[24m[4m2[24m 
+[38;5;246m# ℹ 65 more rows[39m
+[38;5;246m# ℹ Use `print(n = ...)` to see more rows[39m
+[1] "Size"   "Method" "Time"
+[38;5;246m# A tibble: 45 × 3[39m
+    Size Method     Time
+   [3m[38;5;246m<int>[39m[23m [3m[38;5;246m<chr>[39m[23m     [3m[38;5;246m<dbl>[39m[23m
+[38;5;250m 1[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m8[24m
+[38;5;250m 2[39m   100 Par    0.012[4m1[24m  
+[38;5;250m 3[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+[38;5;250m 4[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m9[24m
+[38;5;250m 5[39m   100 Par    0.012[4m3[24m  
+[38;5;250m 6[39m   100 Libc   0.000[4m0[24m[4m2[24m[4m1[24m
+[38;5;250m 7[39m   100 Seq    0.000[4m0[24m[4m1[24m[4m8[24m
+[38;5;250m 8[39m   100 Par    0.011[4m5[24m  
+[38;5;250m 9[39m   100 Libc   0.000[4m0[24m[4m1[24m[4m9[24m
+[38;5;250m10[39m   100 Seq    0.000[4m0[24m[4m2[24m 
+[38;5;246m# ℹ 35 more rows[39m
+[38;5;246m# ℹ Use `print(n = ...)` to see more rows[39m
+#+end_example
+
+**** Plot filtered data
+
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/plot4.png :exports both :width 600 :height 400 :session
+ggplot(data_filtered, aes(x = factor(Size), y = Time, color = Method)) +
+  stat_summary(fun = mean, geom = "point", size = 1) +          
+  stat_summary(fun.data = mean_sdl, geom = "errorbar", width = 0.2) + 
+  scale_color_discrete(
+    name = "Algorithm",           
+    labels = c("Sequential", "Parallel", "Libc")  
+  ) +  
+  labs(
+    title = "Performance by Method (Mean ± SD)",
+    x = "Size",
+    y = "Time (seconds)"
+  ) +
+  scale_x_discrete(breaks = c(1, 10, 100, 1000, 10000, 100000, 1000000, 95000)) + 
+  theme_minimal()
+#+END_SRC
+
+**** Calculate mean and standard deviation
+
+#+BEGIN_SRC R :results output :exports both :session
+data_mean <- data_long %>%
+  group_by(Size, Method) %>%
+  summarise(
+    MeanTime = mean(Time),
+    SDTime = sd(Time),
+    .groups = "drop"
+  )
+#+END_SRC
+
+#+RESULTS:
+
+**** Fit n*log(n) model
+
+#+BEGIN_SRC R :results output :exports both :session
+fits <- data_mean %>%
+  group_by(Method) %>%
+  do(
+    fit = nls(MeanTime ~ a * Size * log(Size),
+              data = .,
+              start = list(a = 1e-7))
+  )
+#+END_SRC
+
+#+RESULTS:
+
+**** Generate fitted values
+
+#+BEGIN_SRC R :results output :exports both :session
+data_fit <- fits %>%
+  rowwise() %>%
+  do({
+    method_name <- .$Method
+    fit_model <- .$fit
+    df <- data_mean %>% filter(Method == method_name)
+    df$Fitted <- predict(fit_model, newdata = df)
+    df
+  })
+#+END_SRC
+
+#+RESULTS:
+
+**** Final plot with n*log(n) fit
+
+#+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-08/plot5.png :exports both :width 600 :height 400 :session
+ggplot(data_mean, aes(x = Size, y = MeanTime, color = Method)) +
+  geom_point(size = 1) +
+  geom_line(data = data_fit, aes(x = Size, y = Fitted, color = Method), size = 1) +
+  scale_color_discrete(
+    name = "Algorithm",
+    labels = c("Sequential", "Parallel", "Libc")
+  ) +
+  scale_x_log10(
+    breaks = c(1, 10, 100, 1000, 10000, 95000),  
+    labels = scales::comma
+  ) +
+  labs(
+    title = "Performance vs Size with n*log(n) Fit",
+    x = "Size (log scale)",
+    y = "Mean Time (seconds)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+#+END_SRC
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-08/plot5.png]]
+
+n*log(n) fits perfectly for sequential and libc, it's not fitting parallel implementation correctly.
