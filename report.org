@@ -24,15 +24,13 @@ echo mkdir data/`hostname`_`date +%F`
 #+RESULTS:
 : mkdir data/THINKBOOK_2025-10-08
 
-*Create a directory for experiment data: `mkdir data/<hostname>_<date>`*
-
 Notes: This command may be omitted, as the subsequent commands will automatically create the necessary directory during execution. However, to ensure a smooth workflow, it is recommended to create the file beforehand.
 
 * Typical usage
 
 ** Compilation
 
-A simple makefile with various compilation options is provided in the `src/` directory. Compilation is thus done by running:
+A simple makefile with various compilation options is provided in the =src/= directory. Compilation is thus done by running:
 
 #+BEGIN_SRC sh :results output :exports both
 make -C src/
@@ -53,13 +51,13 @@ The code is simple and can be run with:
 ./src/parallelQuicksort [array_size]
 #+END_SRC
 
-By default, `array_size` is 1,000,000.
+By default, =array_size= is 1,000,000.
 
 The code executes and sorts the array using:
 
 1.  A custom sequential implementation.
 2.  A custom parallel implementation.
-3.  The built-in `libc` qsort function.
+3.  The built-in =libc= qsort function.
 
 Times are reported in seconds.
 
@@ -89,9 +87,9 @@ bash ./scripts/run_benchmarking.sh
 
 #+RESULTS:
 
-Experimental results were saved in `.txt` files for further analysis.
+Experimental results were saved in =.txt= files for further analysis.
 
-A substep should be done before plotting to parse `.txt` file to `.csv` file:
+A substep should be done before plotting to parse =.txt= file to =.csv= file:
 
 #+BEGIN_SRC sh :results output :exports both
 perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-08/measurements_22\:03.txt > data/THINKBOOK_2025-10-08/measurements_22\:03.csv
@@ -111,7 +109,7 @@ plot(df$Size,df$Time,col=c("red","blue","green")[df$Type])
 
 Unfortunately, there is no point being plotted in the figure.
 
-I noticed that the variables in the `Type` column are of type `chr` rather than `int`. As a result, the parameter `col = c("red","blue","green")[df$Type]` cannot automatically assign colors. I made a minor adjustment by using a dictionary `colors` to map specific colors to each value.
+I noticed that the variables in the =Type= column are of type =chr= rather than =int=. As a result, the parameter =col = c("red","blue","green")[df$Type]= cannot automatically assign colors. I made a minor adjustment by using a dictionary =colors= to map specific colors to each value.
 
 #+BEGIN_SRC R :exports both
 colors <- c(" Sequential" = "red", " Parallel" = "blue", " Built-in" = "green")
@@ -123,7 +121,7 @@ Then, run again.
 df <- read.csv("data/THINKBOOK_2025-10-08/measurements_22:03.csv",header=T)
 colors <- c(" Sequential" = "red", " Parallel" = "blue", " Built-in" = "green")
 plot(df$Size,df$Time,col=colors[df$Type])
-#+END_SRC
+#+end_src
 
 #+RESULTS:
 [[file:data/THINKBOOK_2025-10-08/measurements-22:03_updated.png]]
@@ -134,7 +132,7 @@ A basic plot shows how execution time varies with array size for the sequential,
 
 *The plot shows that the sequential version is faster than the parallel one for larger arrays.*
 
-An alternative visualization using gnuplot.
+An alternative visualization using =gnuplot=.
 
 #+BEGIN_SRC sh :results output raw :exports both
 FILENAME="data/THINKBOOK_2025-10-08/measurements_22:03"
@@ -152,7 +150,7 @@ echo [[file:${FILENAME}_wide.png]]
 #+RESULTS:
 [[file:data/THINKBOOK_2025-10-08/measurements_22:03_wide.png]]
 
-*Notes:* Check whether the `gnuplot` package exists before execution, as it is not automatically installed on Ubuntu 24.04.3 LTS. A base package is enough to use in this project.
+*Notes:* Check whether the =gnuplot= package exists before execution, as it is not automatically installed on Ubuntu 24.04.3 LTS. A base package is enough to use in this project.
 
 #+BEGIN_SRC sh :exports both
 sudo apt update
