@@ -707,7 +707,75 @@ print(performance_summary, digits = 4)
 
 *Coefficient Significance:*
 - If CI contains 0 → coefficient not statistically different from 0 (no significant effect)
-- If CI excludes 0 → coefficient is significant (has real effect on Time)
+- If CI excludes 0 → coefficient is significant (has real effect on
+  Time)
+
+*** Additional Analysis on Linear models
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/model_fit.png :exports both :width 600 :height 400 :session *R*
+new_data <- expand.grid(
+  Size = 10^seq(3, 8, length.out = 100),
+  Type = c("Built-in", "Parallel", "Sequential")
+)
+
+predictions <- predict(lm_full, newdata = new_data, interval = "confidence", level = 0.95)
+plot_df <- cbind(new_data, predictions)
+
+ggplot() +
+  geom_point(data = df, aes(x = Size, y = Time, color = Type), alpha = 0.5, size = 2) +
+  geom_line(data = plot_df, aes(x = Size, y = fit, color = Type), linewidth = 1) +
+  geom_ribbon(data = plot_df, aes(x = Size, ymin = lwr, ymax = upr, fill = Type), 
+              alpha = 0.2) +
+  scale_x_log10(labels = scales::comma) +
+  labs(title = "Linear Model: Fitted Values with 95% Confidence Bands",
+       x = "Array Size (log scale)",
+       y = "Time (seconds)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+#+end_src
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-23/model_fit.png]]
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/goodness_of_fit.png :exports both :width 600 :height 400 :session *R*
+pred_df <- data.frame(
+  Actual = df$Time,
+  Predicted = fitted(lm_full),
+  Type = df$Type
+)
+
+ggplot(pred_df, aes(x = Actual, y = Predicted, color = Type)) +
+  geom_point(alpha = 0.6, size = 2) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "black") +
+  labs(title = "Actual vs Predicted Time",
+       subtitle = "Points near diagonal = good predictions",
+       x = "Actual Time (seconds)",
+       y = "Predicted Time (seconds)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+#+end_src
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-23/goodness_of_fit.png]]
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/model_comparison.png :exports both :width 600 :height 400 :session *R*
+model_comparison <- data.frame(
+  Model = c("Type Only", "Type + log10(Size)"),
+  R_squared = c(summary(lm_type)$r.squared, summary(lm_full)$r.squared)
+)
+
+ggplot(model_comparison, aes(x = Model, y = R_squared, fill = Model)) +
+  geom_col(alpha = 0.7, width = 0.6) +
+  geom_text(aes(label = sprintf("R² = %.4f", R_squared)), vjust = -0.5, size = 5) +
+  labs(title = "Model Performance Comparison",
+       y = "R² (Variance Explained)") +
+  ylim(0, max(model_comparison$R_squared) * 1.2) +
+  theme_minimal() +
+  theme(legend.position = "none")
+#+end_src
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-23/model_comparison.png]]
 
 *** Statistical Testing
 
