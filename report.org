@@ -731,33 +731,6 @@ ggplot(model_comparison, aes(x = Model, y = R_squared, fill = Model)) +
 #+RESULTS:
 [[file:data/THINKBOOK_2025-10-23/model_comparison.png]]
 
-*** Statistical Testing
-
-#+begin_src R :results output :session *R* :exports both
-library(dplyr)
-shapiro_results <- df %>%
-  group_by(Type) %>%
-  summarise(p_value = shapiro.test(Time)$p.value)
-
-shapiro_results
-
-anova_result <- aov(Time ~ Type, data=df)
-summary(anova_result)
-#+end_src
-
-#+RESULTS:
-#+begin_example
-# A tibble: 3 × 2
-  Type        p_value
-  <fct>         <dbl>
-1 Built-in   1.92e-13
-2 Parallel   4.17e-13
-3 Sequential 2.02e-13
-Df Sum Sq Mean Sq F value Pr(>F)
-Type          2   0.12 0.06125   0.288   0.75
-Residuals   267  56.70 0.21236
-#+end_example
-
 ** Key Findings
 
 1. *Parallel is slower* than both Sequential and Built-in across most array sizes
