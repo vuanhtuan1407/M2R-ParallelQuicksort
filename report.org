@@ -663,10 +663,6 @@ print(performance_summary, digits = 4)
 - R² significantly higher → Size explains most variance
 - The log10(Size) coefficient shows how performance scales with input size
 - Much better fit than Model 1, indicating size is the dominant factor
-*Coefficient Significance:*
-- If CI contains 0 → coefficient not statistically different from 0 (no significant effect)
-- If CI excludes 0 → coefficient is significant (has real effect on
-  Time)
 
 *** Additional Analysis on Linear models
 
