@@ -821,15 +821,6 @@ Kruskal-Wallis chi-squared = 8.824, df = 2, p-value = 0.01213
 6. Built-in implementation demonstrates highest consistency
 7. Parallel implementation shows highest variability in performance
 
-** Recommendations
-
-1. Increase array sizes (>10M elements) to potentially see parallel benefits
-2. Investigate thread count optimization
-3. Consider threshold-based switching between sequential and parallel approaches
-4. Analyze CPU utilization and thread scheduling overhead to identify bottlenecks
-5. Profile memory access patterns to reduce cache conflicts
-6. Consider alternative parallelization strategies (e.g., divide-and-conquer thresholds)
-
 ** Conclusion
 
 Results differ from expected performance due to CPU architecture (i5-12500H). The parallel implementation demonstrates no performance advantage over sequential and built-in implementations at the tested array sizes. Threading overhead dominates any potential parallel speedup. Array size is the primary determinant of execution time, with algorithm type having negligible impact. Further investigation with larger datasets and thread optimization is required to achieve parallel efficiency.
