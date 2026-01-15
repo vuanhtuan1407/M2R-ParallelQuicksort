@@ -663,7 +663,6 @@ print(performance_summary, digits = 4)
 - R² significantly higher → Size explains most variance
 - The log10(Size) coefficient shows how performance scales with input size
 - Much better fit than Model 1, indicating size is the dominant factor
-I’ve finally managed to take the time to re-read through all your work (yep, it’s time consuming). Overall, this appears to be of very good (almost too good actually) quality and I’m sure many of you learned important skills and during this leacture. I am just annoyed because lots of reports appear to have been generated using generative AI, which is of little interest in the context of this lecture and appears to me as breaking the scientific deontology and integrity principles. This is annoying as it casts overall doubt and decreases my confidence in what I read. :shrug:
 *Coefficient Significance:*
 - If CI contains 0 → coefficient not statistically different from 0 (no significant effect)
 - If CI excludes 0 → coefficient is significant (has real effect on
@@ -748,8 +747,6 @@ shapiro_results
 
 anova_result <- aov(Time ~ Type, data=df)
 summary(anova_result)
-
-kruskal.test(Time ~ Type, data=df)
 #+end_src
 
 #+RESULTS:
@@ -763,11 +760,6 @@ kruskal.test(Time ~ Type, data=df)
 Df Sum Sq Mean Sq F value Pr(>F)
 Type          2   0.12 0.06125   0.288   0.75
 Residuals   267  56.70 0.21236
-
-	Kruskal-Wallis rank sum test
-
-data:  Time by Type
-Kruskal-Wallis chi-squared = 8.824, df = 2, p-value = 0.01213
 #+end_example
 
 ** Key Findings
