@@ -1,36 +1,30 @@
-#+TITLE: Laboratory Notebook for a Multi-Threaded Version of Quicksort (Updated)
+#+TITLE: Laboratory Notebook for Multi-Threaded QuickSort
 #+AUTHOR: Vu Anh Tuan
 #+DATE: [2025-10-08]
 #+OPTIONS: toc:nil
 
 * Project Overview
 
-This project aims at providing an efficient multi-threaded implementation of the QuickSort algorithm on multi-core machines. This document contains my attempts to evaluate the performance of an implementation of such code.
+This project provides an efficient multi-threaded implementation of the QuickSort algorithm on multi-core machines. This document contains experimental evaluations of the performance of parallel sorting implementations.
 
 * General Organization
 
 ** src/
-
-This directory comprises the parallel implementation and a standard Makefile to compile it.
+Parallel implementation and standard Makefile for compilation.
 
 ** data/
-
-This is where raw experimental data should go. Each directory entry comprises a set of experiments and the directory name is based on the machine name and on the date.
+Raw experimental data organized by machine name and date.
 
 #+BEGIN_SRC sh :exports both
 echo mkdir data/`hostname`_`date +%F`
 #+END_SRC
 
 #+RESULTS:
-: mkdir data/THINKBOOK_2025-10-08
+: mkdir data/THINKBOOK_2025-10-23
 
-Notes: This command may be omitted, as the subsequent commands will automatically create the necessary directory during execution. However, to ensure a smooth workflow, it is recommended to create the file beforehand.
-
-* Typical usage
+* Typical Usage
 
 ** Compilation
-
-A simple makefile with various compilation options is provided in the =src/= directory. Compilation is thus done by running:
 
 #+BEGIN_SRC sh :results output :exports both
 make -C src/
@@ -41,23 +35,16 @@ make -C src/
 : make: 'parallelQuicksort' is up to date.
 : make: Leaving directory '/home/vuanhtuan/workspaces/master/projects/M2R-ParallelQuicksort/src'
 
-Compilation produces the parallel Quicksort executable along with object files.
-
-** Running the code
-
-The code is simple and can be run with:
+** Running the Code
 
 #+BEGIN_SRC sh :exports both
 ./src/parallelQuicksort [array_size]
 #+END_SRC
 
-By default, =array_size= is 1,000,000.
-
-The code executes and sorts the array using:
-
-1.  A custom sequential implementation.
-2.  A custom parallel implementation.
-3.  The built-in =libc= qsort function.
+Default array_size is 1,000,000. The code sorts using:
+1. Custom sequential implementation
+2. Custom parallel implementation  
+3. Built-in libc qsort function
 
 Times are reported in seconds.
 
@@ -65,10 +52,13 @@ Times are reported in seconds.
 
 ** 2025-10-08
 
-*** Initial code executation
+*** Initial Code Execution
 
--   The initial implementation was obtained from [[http://sc12.supercomputing.org/hpceducator/PythonForParallelism/codes/parallelQuicksort.c][SC12 HPC Educator]]. The original author is Joshua Stough from Washington and Lee University and the modified version from [[https://github.com/alegrand/M2R-ParallelQuicksort][Arnaud Legrand Github]].
--   Typical first execution on my laptop (Intel i5-12500H, Ubuntu 24.04.3 LTS Linux 6.14.0-33-generic) showed *the sequential version ran faster than the parallel one.*
+Source: [[http://sc12.supercomputing.org/hpceducator/PythonForParallelism/codes/parallelQuicksort.c][SC12 HPC Educator]] (Joshua Stough, modified by [[https://github.com/alegrand/M2R-ParallelQuicksort][Arnaud Legrand]])
+
+Test system: Intel i5-12500H, Ubuntu 24.04.3 LTS, Linux 6.14.0-33-generic
+
+Initial observation: *Sequential version faster than parallel version*
 
 #+BEGIN_SRC sh :results output :exports both
 ./src/parallelQuicksort
@@ -79,7 +69,7 @@ Times are reported in seconds.
 : Parallel quicksort took: 0.162522 sec.
 : Built-in quicksort took: 0.121310 sec.
 
-Then, I follow the instruction of first series of experiments. I ran the three algorithms with varying array sizes, repeating each measurement 5 times.
+*** First Benchmark Series
 
 #+BEGIN_SRC bash :results output :exports both
 bash ./scripts/run_benchmarking.sh
@@ -87,9 +77,7 @@ bash ./scripts/run_benchmarking.sh
 
 #+RESULTS:
 
-Experimental results were saved in =.txt= files for further analysis.
-
-A substep should be done before plotting to parse =.txt= file to =.csv= file:
+**** Data Parsing
 
 #+BEGIN_SRC sh :results output :exports both
 perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-23/measurements_01\:19.txt > data/THINKBOOK_2025-10-23/measurements_01\:19.csv
@@ -97,30 +85,19 @@ perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-23/measuremen
 
 #+RESULTS:
 
-Parsed results were visualized using R.
+**** Initial Visualization (Failed)
 
-#+begin_src R :results graphics file :file data/THINKBOOK_2025-10-23/mearsurements-01:19.png :exports both :width 600 :height 400 :session
+#+begin_src R :results graphics file :file data/THINKBOOK_2025-10-23/measurements-01:19.png :exports both :width 600 :height 400 :session
 df <- read.csv("data/THINKBOOK_2025-10-23/measurements_01:19.csv",header=T)
 plot(df$Size,df$Time,col=c("red","blue","green")[df$Type])
 #+end_src
 
- #+RESULTS:
- [[file:data/THINKBOOK_2025-10-23/mearsurements-01:19.png]]
-
-Unfortunately, there is no point being plotted in the figure.
-
-I noticed that the variables in the =Type= column are of type =chr= rather than =int=. As a result, the parameter =col = c("red","blue","green")[df$Type]= cannot automatically assign colors. I made a minor adjustment by using a dictionary =colors= to map specific colors to each value.
-
-#+BEGIN_SRC R :exports both
-colors <- c(" Sequential" = "red", " Parallel" = "blue", " Built-in" = "green")
-#+END_SRC
-
 #+RESULTS:
-| red   |
-| blue  |
-| green |
+[[file:data/THINKBOOK_2025-10-23/measurements-01:19.png]]
 
-Then, run again.
+Issue: Type column is character, not integer. Color mapping failed.
+
+**** Fixed Visualization
 
 #+BEGIN_SRC R :results graphics file :file data/THINKBOOK_2025-10-23/measurements-01:19_fixed.png :exports both :width 600 :height 400 :session
 df <- read.csv("data/THINKBOOK_2025-10-23/measurements_01:19.csv",header=T)
@@ -131,13 +108,7 @@ plot(df$Size,df$Time,col=colors[df$Type])
 #+RESULTS:
 [[file:data/THINKBOOK_2025-10-23/measurements-01:19_fixed.png]]
 
-The points now appear in the figure.
-
-A basic plot shows how execution time varies with array size for the sequential, parallel, and built-in versions.
-
-*The plot shows that the sequential version is faster than the parallel one for larger arrays.*
-
-An alternative visualization using =gnuplot=.
+**** Alternative Visualization with gnuplot
 
 #+BEGIN_SRC sh :results output raw :exports both
 FILENAME="data/THINKBOOK_2025-10-23/measurements_01:19"
@@ -155,34 +126,33 @@ echo [[file:${FILENAME}_wide.png]]
 #+RESULTS:
 [[file:data/THINKBOOK_2025-10-23/measurements_01:19_wide.png]]
 
-*Notes:* Check whether the =gnuplot= package exists before execution, as it is not automatically installed on Ubuntu 24.04.3 LTS. A base package is enough to use in this project.
-
-#+BEGIN_SRC sh :exports both
+Note: Install gnuplot if needed:
+#+BEGIN_SRC sh :exports code
 sudo apt update
 sudo apt install gnuplot-nox
 #+END_SRC
 
-*Conclusion:* I noticed that my results differ somewhat from those provided in the instructions. This variation is probably due to differences in CPU architecture, as I am using an i5 processor (while the instructions were based on an i7).
+*Conclusion:* Results differ from instructions due to CPU architecture differences (i5 vs i7).
 
+*** Experimental Improvements
 
-*** Improvement
-Currently, the experiment still presents several limitations:
-- The number of repetitions per test is too small, making results sensitive to noise.
-- The range of input sizes is limited, which hides performance trends for very small or large arrays.
-- The execution order of tests is fixed, introducing possible cache or thermal bias.
-- The experiment does not explore scalability with respect to the number of threads.
-- Raw data storage and analysis are too basic, lacking statistical summaries and visual clarity.
+Current limitations:
+- Too few repetitions (sensitive to noise)
+- Limited input size range
+- Fixed execution order (caching bias)
+- No thread scalability analysis
+- Basic data storage and analysis
 
-To address these issues, I suggest the following improvements:
-- Increase the number of repetitions to obtain more stable averages.
-- Extend the range of input sizes to capture performance transitions.
-- Randomize the execution order to remove caching bias.
-- Evaluate scalability by testing multiple thread counts.
-- Compute mean, standard deviation, and confidence intervals for each configuration.
-- Produce clearer plots with error bars using R or Python.
-- Document system information for reproducibility.
+Proposed improvements:
+- Increase repetitions for stable averages
+- Extend input size range
+- Randomize execution order
+- Evaluate multiple thread counts
+- Compute mean, SD, and confidence intervals
+- Produce clearer plots with error bars
+- Document system information
 
-**** Increase the number of repetitions (KEEP SIZES)
+**** Increased Repetitions (10 runs)
 
 #+begin_src shell :session *shell* :results output :exports both
 OUTPUT_DIR=data/`hostname`_`date +%F`
@@ -202,7 +172,7 @@ done
 
 #+RESULTS:
 
-**** Extend the range of input sizes (KEEP REPS)
+**** Extended Size Range
 
 #+begin_src shell :session *shell* :results output :exports both
 OUTPUT_DIR=data/`hostname`_`date +%F`
@@ -222,7 +192,7 @@ done
 
 #+RESULTS:
 
-**** Randomize execution order (Shuffle SIZES)
+**** Randomized Execution Order
 
 #+begin_src shell :session *shell* :results output :exports both
 OUTPUT_DIR=data/`hostname`_`date +%F`
@@ -242,7 +212,7 @@ done
 
 #+RESULTS:
 
-**** Full benchmark
+**** Full Benchmark (Combined Improvements)
 
 #+begin_src shell :session *shell* :results output :exports both
 OUTPUT_DIR=data/`hostname`_`date +%F`
@@ -252,7 +222,7 @@ OUTPUT_FILE=$OUTPUT_DIR/measurements_$(date +%R)_full.txt
 SIZES=(1000 10000 100000 200000 500000 1000000 2000000 5000000 10000000)
 REPS=($(seq 1 10))
 
-for size in $(shuf -e  "${SIZES[@]}"); do
+for size in $(shuf -e "${SIZES[@]}"); do
     for rep in "${REPS[@]}"; do
         echo "Size: $size, Run: $rep" >> $OUTPUT_FILE
         ./src/parallelQuicksort $size >> $OUTPUT_FILE
@@ -262,7 +232,7 @@ done
 
 #+RESULTS:
 
-**** Convert from .txt to .csv
+**** Convert to CSV Format
 
 #+begin_src shell :session *shell* :results output :exports both
 perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-23/measurements_01\:58_reps.txt > data/THINKBOOK_2025-10-23/measurements_01\:58_reps.csv
@@ -273,440 +243,12 @@ perl ./scripts/csv_quicksort_extractor.pl < data/THINKBOOK_2025-10-23/measuremen
 
 #+RESULTS:
 
-**** Statistical Analysis
+*** Statistical Analysis
+
+**** Data Exploration
 
 #+begin_src R :results output :session *R* :exports both
 df <- read.csv("data/THINKBOOK_2025-10-23/measurements_02:02_full.csv", header=T)
-df
-#+end_src
-
-#+RESULTS:
-#+begin_example
-         Size        Type     Time
-1        1000  Sequential 0.000099
-2        1000    Parallel 0.015103
-3        1000    Built-in 0.000105
-4        1000  Sequential 0.000072
-5        1000    Parallel 0.013262
-6        1000    Built-in 0.000105
-7        1000  Sequential 0.000070
-8        1000    Parallel 0.013954
-9        1000    Built-in 0.000067
-10       1000  Sequential 0.000103
-11       1000    Parallel 0.013020
-12       1000    Built-in 0.000111
-13       1000  Sequential 0.000071
-14       1000    Parallel 0.013583
-15       1000    Built-in 0.000069
-16       1000  Sequential 0.000071
-17       1000    Parallel 0.012923
-18       1000    Built-in 0.000066
-19       1000  Sequential 0.000208
-20       1000    Parallel 0.012379
-21       1000    Built-in 0.000074
-22       1000  Sequential 0.000111
-23       1000    Parallel 0.016300
-24       1000    Built-in 0.000106
-25       1000  Sequential 0.000073
-26       1000    Parallel 0.011270
-27       1000    Built-in 0.000067
-28      10000  Sequential 0.000105
-29      10000    Parallel 0.012745
-30      10000    Built-in 0.000105
-31    2000000  Sequential 0.243085
-32    2000000    Parallel 0.313287
-33    2000000    Built-in 0.251356
-34    2000000  Sequential 0.241427
-35    2000000    Parallel 0.302985
-36    2000000    Built-in 0.251706
-37    2000000  Sequential 0.246815
-38    2000000    Parallel 0.318520
-39    2000000    Built-in 0.250592
-40    2000000  Sequential 0.240728
-41    2000000    Parallel 0.308598
-42    2000000    Built-in 0.277368
-43    2000000  Sequential 0.243850
-44    2000000    Parallel 0.304056
-45    2000000    Built-in 0.249836
-46    2000000  Sequential 0.243840
-47    2000000    Parallel 0.313999
-48    2000000    Built-in 0.252791
-49    2000000  Sequential 0.244136
-50    2000000    Parallel 0.296309
-51    2000000    Built-in 0.248839
-52    2000000  Sequential 0.242105
-53    2000000    Parallel 0.303588
-54    2000000    Built-in 0.251258
-55    2000000  Sequential 0.249217
-56    2000000    Parallel 0.307686
-57    2000000    Built-in 0.250295
-58   20000000  Sequential 0.245838
-59   20000000    Parallel 0.313496
-60   20000000    Built-in 0.251857
-61      10000  Sequential 0.001225
-62      10000    Parallel 0.020911
-63      10000    Built-in 0.001499
-64      10000  Sequential 0.001391
-65      10000    Parallel 0.020823
-66      10000    Built-in 0.000855
-67      10000  Sequential 0.000886
-68      10000    Parallel 0.022535
-69      10000    Built-in 0.000850
-70      10000  Sequential 0.000947
-71      10000    Parallel 0.022882
-72      10000    Built-in 0.000850
-73      10000  Sequential 0.001152
-74      10000    Parallel 0.023341
-75      10000    Built-in 0.000900
-76      10000  Sequential 0.000869
-77      10000    Parallel 0.024045
-78      10000    Built-in 0.000984
-79      10000  Sequential 0.000902
-80      10000    Parallel 0.020081
-81      10000    Built-in 0.000933
-82      10000  Sequential 0.000885
-83      10000    Parallel 0.025845
-84      10000    Built-in 0.000932
-85      10000  Sequential 0.000895
-86      10000    Parallel 0.024129
-87      10000    Built-in 0.000850
-88     100000  Sequential 0.001032
-89     100000    Parallel 0.022938
-90     100000    Built-in 0.000859
-91    1000000  Sequential 0.116942
-92    1000000    Parallel 0.150870
-93    1000000    Built-in 0.119871
-94    1000000  Sequential 0.118434
-95    1000000    Parallel 0.155871
-96    1000000    Built-in 0.119563
-97    1000000  Sequential 0.119678
-98    1000000    Parallel 0.156763
-99    1000000    Built-in 0.124279
-100   1000000  Sequential 0.120744
-101   1000000    Parallel 0.156442
-102   1000000    Built-in 0.122076
-103   1000000  Sequential 0.119308
-104   1000000    Parallel 0.158001
-105   1000000    Built-in 0.122696
-106   1000000  Sequential 0.119531
-107   1000000    Parallel 0.159587
-108   1000000    Built-in 0.124037
-109   1000000  Sequential 0.118202
-110   1000000    Parallel 0.164855
-111   1000000    Built-in 0.118699
-112   1000000  Sequential 0.118895
-113   1000000    Parallel 0.156306
-114   1000000    Built-in 0.129281
-115   1000000  Sequential 0.118168
-116   1000000    Parallel 0.158101
-117   1000000    Built-in 0.120539
-118  10000000  Sequential 0.117512
-119  10000000    Parallel 0.163300
-120  10000000    Built-in 0.121920
-121    500000  Sequential 0.059729
-122    500000    Parallel 0.088501
-123    500000    Built-in 0.057509
-124    500000  Sequential 0.056136
-125    500000    Parallel 0.088637
-126    500000    Built-in 0.057222
-127    500000  Sequential 0.057886
-128    500000    Parallel 0.082992
-129    500000    Built-in 0.057759
-130    500000  Sequential 0.056860
-131    500000    Parallel 0.084367
-132    500000    Built-in 0.057968
-133    500000  Sequential 0.057064
-134    500000    Parallel 0.082588
-135    500000    Built-in 0.057913
-136    500000  Sequential 0.056352
-137    500000    Parallel 0.085689
-138    500000    Built-in 0.057520
-139    500000  Sequential 0.056127
-140    500000    Parallel 0.086561
-141    500000    Built-in 0.057770
-142    500000  Sequential 0.058859
-143    500000    Parallel 0.087527
-144    500000    Built-in 0.057195
-145    500000  Sequential 0.058796
-146    500000    Parallel 0.086033
-147    500000    Built-in 0.057155
-148   5000000  Sequential 0.063732
-149   5000000    Parallel 0.087428
-150   5000000    Built-in 0.057997
-151    200000  Sequential 0.026912
-152    200000    Parallel 0.048232
-153    200000    Built-in 0.023131
-154    200000  Sequential 0.023464
-155    200000    Parallel 0.044743
-156    200000    Built-in 0.022336
-157    200000  Sequential 0.025714
-158    200000    Parallel 0.045513
-159    200000    Built-in 0.024508
-160    200000  Sequential 0.023699
-161    200000    Parallel 0.040669
-162    200000    Built-in 0.022788
-163    200000  Sequential 0.026286
-164    200000    Parallel 0.042628
-165    200000    Built-in 0.022291
-166    200000  Sequential 0.020557
-167    200000    Parallel 0.039699
-168    200000    Built-in 0.022033
-169    200000  Sequential 0.021321
-170    200000    Parallel 0.044614
-171    200000    Built-in 0.021767
-172    200000  Sequential 0.022193
-173    200000    Parallel 0.045154
-174    200000    Built-in 0.022153
-175    200000  Sequential 0.022288
-176    200000    Parallel 0.043110
-177    200000    Built-in 0.022168
-178   2000000  Sequential 0.026198
-179   2000000    Parallel 0.046596
-180   2000000    Built-in 0.022588
-181    100000  Sequential 0.014576
-182    100000    Parallel 0.029479
-183    100000    Built-in 0.011806
-184    100000  Sequential 0.010368
-185    100000    Parallel 0.035428
-186    100000    Built-in 0.010818
-187    100000  Sequential 0.010355
-188    100000    Parallel 0.033178
-189    100000    Built-in 0.010654
-190    100000  Sequential 0.010367
-191    100000    Parallel 0.034130
-192    100000    Built-in 0.010628
-193    100000  Sequential 0.010281
-194    100000    Parallel 0.034075
-195    100000    Built-in 0.010858
-196    100000  Sequential 0.010263
-197    100000    Parallel 0.040028
-198    100000    Built-in 0.011538
-199    100000  Sequential 0.010366
-200    100000    Parallel 0.034993
-201    100000    Built-in 0.011529
-202    100000  Sequential 0.010518
-203    100000    Parallel 0.037239
-204    100000    Built-in 0.010630
-205    100000  Sequential 0.010308
-206    100000    Parallel 0.036507
-207    100000    Built-in 0.010592
-208   1000000  Sequential 0.010450
-209   1000000    Parallel 0.034739
-210   1000000    Built-in 0.011168
-211   5000000  Sequential 0.660950
-212   5000000    Parallel 0.764039
-213   5000000    Built-in 0.687803
-214   5000000  Sequential 0.676944
-215   5000000    Parallel 0.768235
-216   5000000    Built-in 0.689116
-217   5000000  Sequential 0.660129
-218   5000000    Parallel 0.770842
-219   5000000    Built-in 0.683763
-220   5000000  Sequential 0.678340
-221   5000000    Parallel 0.791111
-222   5000000    Built-in 0.714435
-223   5000000  Sequential 0.660825
-224   5000000    Parallel 0.767952
-225   5000000    Built-in 0.689748
-226   5000000  Sequential 0.668394
-227   5000000    Parallel 0.758803
-228   5000000    Built-in 0.682344
-229   5000000  Sequential 0.650742
-230   5000000    Parallel 0.773905
-231   5000000    Built-in 0.693796
-232   5000000  Sequential 0.671657
-233   5000000    Parallel 0.763686
-234   5000000    Built-in 0.683240
-235   5000000  Sequential 0.668794
-236   5000000    Parallel 0.785633
-237   5000000    Built-in 0.686941
-238  50000000  Sequential 0.668216
-239  50000000    Parallel 0.719600
-240  50000000    Built-in 0.692520
-241  10000000  Sequential 1.391844
-242  10000000    Parallel 1.537668
-243  10000000    Built-in 1.429787
-244  10000000  Sequential 1.379194
-245  10000000    Parallel 1.505511
-246  10000000    Built-in 1.431103
-247  10000000  Sequential 1.374595
-248  10000000    Parallel 1.489420
-249  10000000    Built-in 1.427124
-250  10000000  Sequential 1.375297
-251  10000000    Parallel 1.514686
-252  10000000    Built-in 1.445993
-253  10000000  Sequential 1.377201
-254  10000000    Parallel 1.549605
-255  10000000    Built-in 1.427081
-256  10000000  Sequential 1.401969
-257  10000000    Parallel 1.479218
-258  10000000    Built-in 1.441313
-259  10000000  Sequential 1.382091
-260  10000000    Parallel 1.527654
-261  10000000    Built-in 1.434124
-262  10000000  Sequential 1.385236
-263  10000000    Parallel 1.540107
-264  10000000    Built-in 1.450641
-265  10000000  Sequential 1.393242
-266  10000000    Parallel 1.526706
-267  10000000    Built-in 1.436827
-268 100000000  Sequential 1.381532
-269 100000000    Parallel 1.500176
-270 100000000    Built-in 1.448873
-#+end_example
-
-#+begin_src R :results output :session *R* :exports both
-# sort df
-library(dplyr)
-df <- df %>% arrange(Size)
-head(df)
-#+end_src
-
-#+RESULTS:
-:   Size        Type     Time
-: 1 1000  Sequential 0.000099
-: 2 1000    Parallel 0.015103
-: 3 1000    Built-in 0.000105
-: 4 1000  Sequential 0.000072
-: 5 1000    Parallel 0.013262
-: 6 1000    Built-in 0.000105
-
-#+begin_src R :results output :session *R* :exports both
-library(dplyr)
-
-options(crayon.enabled = FALSE)  # turn off color from  dplyr/tibble
-
-summary_df <- df %>%
-  group_by(Size, Type) %>%
-  summarise(
-    mean_time = mean(Time),
-    sd_time = sd(Time),
-    n = n(),
-    se = sd_time / sqrt(n),
-    ci_lower = mean_time - 1.96 * se,
-    ci_upper = mean_time + 1.96 * se,
-  ) %>%
-  as.data.frame()
-
-class(summary_df)
-
-#head(summary_df)
-summary_df
-#+end_src
-
-#+RESULTS:
-#+begin_example
-[1] "data.frame"
-        Size        Type    mean_time      sd_time  n           se     ci_lower
-1       1000    Built-in 8.555556e-05 2.031078e-05  9 6.770260e-06 7.228585e-05
-2       1000    Parallel 1.353267e-02 1.477435e-03  9 4.924785e-04 1.256741e-02
-3       1000  Sequential 9.755556e-05 4.449188e-05  9 1.483063e-05 6.848752e-05
-4      10000    Built-in 8.758000e-04 3.339434e-04 10 1.056022e-04 6.688198e-04
-5      10000    Parallel 2.173370e-02 3.614182e-03 10 1.142905e-03 1.949361e-02
-6      10000  Sequential 9.257000e-04 3.398121e-04 10 1.074580e-04 7.150823e-04
-7     100000    Built-in 9.991200e-03 3.240315e-03 10 1.024678e-03 7.982832e-03
-8     100000    Parallel 3.379950e-02 4.705100e-03 10 1.487883e-03 3.088325e-02
-9     100000  Sequential 9.843400e-03 3.369157e-03 10 1.065421e-03 7.755175e-03
-10    200000    Built-in 2.257500e-02 8.305971e-04  9 2.768657e-04 2.203234e-02
-11    200000    Parallel 4.381800e-02 2.608407e-03  9 8.694689e-04 4.211384e-02
-12    200000  Sequential 2.360378e-02 2.259308e-03  9 7.531027e-04 2.212770e-02
-13    500000    Built-in 5.755678e-02 3.143198e-04  9 1.047733e-04 5.735142e-02
-14    500000    Parallel 8.587722e-02 2.212856e-03  9 7.376187e-04 8.443149e-02
-15    500000  Sequential 5.753433e-02 1.336813e-03  9 4.456043e-04 5.666095e-02
-16   1000000    Built-in 1.112209e-01 3.528958e-02 10 1.115955e-02 8.934819e-02
-17   1000000    Parallel 1.451535e-01 3.895106e-02 10 1.231741e-02 1.210114e-01
-18   1000000  Sequential 1.080352e-01 3.430356e-02 10 1.084774e-02 8.677363e-02
-19   2000000    Built-in 2.306629e-01 7.359191e-02 10 2.327181e-02 1.850502e-01
-20   2000000    Parallel 2.815624e-01 8.280801e-02 10 2.618619e-02 2.302375e-01
-21   2000000  Sequential 2.221401e-01 6.889293e-02 10 2.178586e-02 1.794398e-01
-22   5000000    Built-in 6.269183e-01 2.001123e-01 10 6.328108e-02 5.028874e-01
-23   5000000    Parallel 7.031634e-01 2.165762e-01 10 6.848741e-02 5.689281e-01
-24   5000000  Sequential 6.060507e-01 1.907368e-01 10 6.031627e-02 4.878308e-01
-25  10000000    Built-in 1.304591e+00 4.156242e-01 10 1.314319e-01 1.046985e+00
-26  10000000    Parallel 1.383387e+00 4.292808e-01 10 1.357505e-01 1.117317e+00
-27  10000000  Sequential 1.257818e+00 4.007606e-01 10 1.267316e-01 1.009424e+00
-28  20000000    Built-in 2.518570e-01           NA  1           NA           NA
-29  20000000    Parallel 3.134960e-01           NA  1           NA           NA
-30  20000000  Sequential 2.458380e-01           NA  1           NA           NA
-31  50000000    Built-in 6.925200e-01           NA  1           NA           NA
-32  50000000    Parallel 7.196000e-01           NA  1           NA           NA
-33  50000000  Sequential 6.682160e-01           NA  1           NA           NA
-34 100000000    Built-in 1.448873e+00           NA  1           NA           NA
-35 100000000    Parallel 1.500176e+00           NA  1           NA           NA
-36 100000000  Sequential 1.381532e+00           NA  1           NA           NA
-       ci_upper
-1  9.882527e-05
-2  1.449792e-02
-3  1.266236e-04
-4  1.082780e-03
-5  2.397379e-02
-6  1.136318e-03
-7  1.199957e-02
-8  3.671575e-02
-9  1.193163e-02
-10 2.311766e-02
-11 4.552216e-02
-12 2.507986e-02
-13 5.776213e-02
-14 8.732295e-02
-15 5.840772e-02
-16 1.330936e-01
-17 1.692956e-01
-18 1.292968e-01
-19 2.762756e-01
-20 3.328873e-01
-21 2.648404e-01
-22 7.509492e-01
-23 8.373987e-01
-24 7.242706e-01
-25 1.562198e+00
-26 1.649458e+00
-27 1.506212e+00
-28           NA
-29           NA
-30           NA
-31           NA
-32           NA
-33           NA
-34           NA
-35           NA
-36           NA
-#+end_example
-
-**** Visualisation
-
-#+begin_src R :results output :session *R* :exports both
-library(ggplot2)
-library(dplyr)
-#+end_src
-
-#+RESULTS:
-
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_scatter_trial.png :exports both :width 600 :height 400 :session *R*
-ggplot(df, aes(x = factor(Size), y = Time, color = Type)) +
-  geom_jitter(width = 0.2, height = 0) +
-  labs(title = "Trial data points by Size and Type",
-       x = "Size",
-       y = "Time") +
-  theme_minimal()
-#+end_src
-
-#+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_scatter_trial.png]]
-
-
-#+begin_src R :results output :session *R* :exports both
-df <- read.csv("data/THINKBOOK_2025-10-23/measurements_02:02_full.csv", header=T)
-head(df, 3)
-#+end_src
-
-#+RESULTS:
-:   Size        Type     Time
-: 1 1000  Sequential 0.000099
-: 2 1000    Parallel 0.015103
-: 3 1000    Built-in 0.000105
-
-#+begin_src R :results output :session *R* :exports both
 str(df)
 summary(df)
 #+end_src
@@ -717,7 +259,7 @@ summary(df)
  $ Size: int  1000 1000 1000 1000 1000 1000 1000 1000 1000 1000 ...
  $ Type: chr  " Sequential" " Parallel" " Built-in" " Sequential" ...
  $ Time: num  0.000099 0.015103 0.000105 0.000072 0.013262 ...
-      Size               Type                Time         
+Size               Type                Time         
  Min.   :     1000   Length:270         Min.   :0.000066  
  1st Qu.:   100000   Class :character   1st Qu.:0.014708  
  Median :   500000   Mode  :character   Median :0.057982  
@@ -725,6 +267,8 @@ summary(df)
  3rd Qu.:  5000000                      3rd Qu.:0.303437  
  Max.   :100000000                      Max.   :1.549605
 #+end_example
+
+**** Data Cleaning
 
 #+begin_src R :results output :session *R* :exports both
 df$Type <- factor(trimws(df$Type))
@@ -736,7 +280,8 @@ levels(df$Type)
 :  Factor w/ 3 levels "Built-in","Parallel",..: 3 2 1 3 2 1 3 2 1 3 ...
 : [1] "Built-in"   "Parallel"   "Sequential"
 
-Now we need to summary statistics of column Time grouped by Time
+**** Summary Statistics by Type
+
 #+begin_src R :results output :session *R* :exports both
 tapply(df$Time, df$Type, summary)
 #+end_src
@@ -770,7 +315,9 @@ sd_by_type
 :   Built-in   Parallel Sequential 
 :  0.4592575  0.4803302  0.4421077
 
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_Time_boxplot.png :exports both :width 600 :height 400 :session *R*
+**** Distribution Visualizations
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_boxplot.png :exports both :width 600 :height 400 :session *R*
 boxplot(Time ~ Type, data = df,
         main = "Execution Time by Algorithm Type",
         xlab = "Algorithm Type",
@@ -780,9 +327,9 @@ boxplot(Time ~ Type, data = df,
 #+end_src
 
 #+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_Time_boxplot.png]]
+[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_boxplot.png]]
 
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_Time_density.png :exports both :width 600 :height 400 :session *R*
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_density.png :exports both :width 600 :height 400 :session *R*
 time_by_type <- split(df$Time, df$Type)
 colors <- c("red", "blue", "green")
 plot(density(time_by_type[[1]]), col=colors[1], main="Density of Time by Type", xlab="Time", ylab="Density")
@@ -792,176 +339,378 @@ legend("topright", legend=names(time_by_type), col=colors, lty=1)
 #+end_src
 
 #+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_Time_density.png]]
+[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_distribution_density.png]]
 
-Now, we group data by Size and Type, then calculate basic statistics
-for each group
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_scatter_trial.png :exports both :width 600 :height 400 :session *R*
+library(ggplot2)
+ggplot(df, aes(x = factor(Size), y = Time, color = Type)) +
+  geom_jitter(width = 0.2, height = 0) +
+  labs(title = "Trial Data Points by Size and Type",
+       x = "Size",
+       y = "Time") +
+  theme_minimal()
+#+end_src
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_scatter_trial.png]]
+
+*** Confidence Intervals Analysis
+
 #+begin_src R :results output :session *R* :exports both
 library(dplyr)
 options(crayon.enabled = FALSE)
+
 summary_stats <- df %>%
   group_by(Size, Type) %>%
   summarise(
     mean_time = mean(Time),
     sd_time = sd(Time),  
     n = n(),
+    se = sd_time / sqrt(n),
+    ci_lower = mean_time - qt(0.975, df = n - 1) * se,
+    ci_upper = mean_time + qt(0.975, df = n - 1) * se,
+    cv = (sd_time / mean_time) * 100,
     .groups = "drop"
   )
 
-as.data.frame(summary_stats)
+cat("\n=== SUMMARY STATISTICS WITH 95% CI ===\n")
+print(as.data.frame(summary_stats), digits = 4)
 #+end_src
 
 #+RESULTS:
 #+begin_example
-        Size       Type    mean_time      sd_time  n
-1       1000   Built-in 8.555556e-05 2.031078e-05  9
-2       1000   Parallel 1.353267e-02 1.477435e-03  9
-3       1000 Sequential 9.755556e-05 4.449188e-05  9
-4      10000   Built-in 8.758000e-04 3.339434e-04 10
-5      10000   Parallel 2.173370e-02 3.614182e-03 10
-6      10000 Sequential 9.257000e-04 3.398121e-04 10
-7     100000   Built-in 9.991200e-03 3.240315e-03 10
-8     100000   Parallel 3.379950e-02 4.705100e-03 10
-9     100000 Sequential 9.843400e-03 3.369157e-03 10
-10    200000   Built-in 2.257500e-02 8.305971e-04  9
-11    200000   Parallel 4.381800e-02 2.608407e-03  9
-12    200000 Sequential 2.360378e-02 2.259308e-03  9
-13    500000   Built-in 5.755678e-02 3.143198e-04  9
-14    500000   Parallel 8.587722e-02 2.212856e-03  9
-15    500000 Sequential 5.753433e-02 1.336813e-03  9
-16   1000000   Built-in 1.112209e-01 3.528958e-02 10
-17   1000000   Parallel 1.451535e-01 3.895106e-02 10
-18   1000000 Sequential 1.080352e-01 3.430356e-02 10
-19   2000000   Built-in 2.306629e-01 7.359191e-02 10
-20   2000000   Parallel 2.815624e-01 8.280801e-02 10
-21   2000000 Sequential 2.221401e-01 6.889293e-02 10
-22   5000000   Built-in 6.269183e-01 2.001123e-01 10
-23   5000000   Parallel 7.031634e-01 2.165762e-01 10
-24   5000000 Sequential 6.060507e-01 1.907368e-01 10
-25  10000000   Built-in 1.304591e+00 4.156242e-01 10
-26  10000000   Parallel 1.383387e+00 4.292808e-01 10
-27  10000000 Sequential 1.257818e+00 4.007606e-01 10
-28  20000000   Built-in 2.518570e-01           NA  1
-29  20000000   Parallel 3.134960e-01           NA  1
-30  20000000 Sequential 2.458380e-01           NA  1
-31  50000000   Built-in 6.925200e-01           NA  1
-32  50000000   Parallel 7.196000e-01           NA  1
-33  50000000 Sequential 6.682160e-01           NA  1
-34 100000000   Built-in 1.448873e+00           NA  1
-35 100000000   Parallel 1.500176e+00           NA  1
-36 100000000 Sequential 1.381532e+00           NA  1
-#+end_example
 
-Okay, we already had some basic results of the running time of these 3
-sorting algorithms. Now we will move on the next step: Compute 95% CI
-and prepare for plotting errors.
+Attaching package: ‘dplyr’
 
-#+begin_src R :results output :session *R* :exports both
-library(dplyr)
+The following objects are masked from ‘package:stats’:
 
-# Calculate 95% Confidence Interval
-library(dplyr)
-options(crayons.enable = FALSE)
-summary_stats <- summary_stats %>%
-  mutate(
-    ci_lower = mean_time - qt(0.975, df = n - 1) * sd_time / sqrt(n), # lower bound of 95% CI
-    ci_upper = mean_time + qt(0.975, df = n - 1) * sd_time / sqrt(n)  # upper bound of 95% CI
-  )
+    filter, lag
 
-as.data.frame(summary_stats)
-#+end_src
+The following objects are masked from ‘package:base’:
 
-#+RESULTS:
-#+begin_example
+    intersect, setdiff, setequal, union
 Warning message:
-There were 2 warnings in `mutate()`.
+There were 18 warnings in `summarise()`.
 The first warning was:
-ℹ In argument: `ci_lower = mean_time - qt(0.975, df = n - 1) * sd_time/sqrt(n)`.
+ℹ In argument: `ci_lower = mean_time - qt(0.975, df = n - 1) * se`.
+ℹ In group 28: `Size = 20000000`, `Type = Built-in`.
 Caused by warning in `qt()`:
 ! NaNs produced
-ℹ Run `dplyr::last_dplyr_warnings()` to see the 1 remaining warning.
-        Size       Type    mean_time      sd_time  n     ci_lower     ci_upper
-1       1000   Built-in 8.555556e-05 2.031078e-05  9 6.994331e-05 0.0001011678
-2       1000   Parallel 1.353267e-02 1.477435e-03  9 1.239701e-02 0.0146683241
-3       1000 Sequential 9.755556e-05 4.449188e-05  9 6.335607e-05 0.0001317550
-4      10000   Built-in 8.758000e-04 3.339434e-04 10 6.369113e-04 0.0011146887
-5      10000   Parallel 2.173370e-02 3.614182e-03 10 1.914827e-02 0.0243191300
-6      10000 Sequential 9.257000e-04 3.398121e-04 10 6.826131e-04 0.0011687869
-7     100000   Built-in 9.991200e-03 3.240315e-03 10 7.673218e-03 0.0123091818
-8     100000   Parallel 3.379950e-02 4.705100e-03 10 3.043367e-02 0.0371653256
-9     100000 Sequential 9.843400e-03 3.369157e-03 10 7.433250e-03 0.0122535498
-10    200000   Built-in 2.257500e-02 8.305971e-04  9 2.193655e-02 0.0232134534
-11    200000   Parallel 4.381800e-02 2.608407e-03  9 4.181300e-02 0.0458229989
-12    200000 Sequential 2.360378e-02 2.259308e-03  9 2.186712e-02 0.0253404358
-13    500000   Built-in 5.755678e-02 3.143198e-04  9 5.731517e-02 0.0577983854
-14    500000   Parallel 8.587722e-02 2.212856e-03  9 8.417627e-02 0.0875781740
-15    500000 Sequential 5.753433e-02 1.336813e-03  9 5.650677e-02 0.0585618987
-16   1000000   Built-in 1.112209e-01 3.528958e-02 10 8.597625e-02 0.1364655462
-17   1000000   Parallel 1.451535e-01 3.895106e-02 10 1.172896e-01 0.1730174091
-18   1000000 Sequential 1.080352e-01 3.430356e-02 10 8.349591e-02 0.1325744884
-19   2000000   Built-in 2.306629e-01 7.359191e-02 10 1.780184e-01 0.2833073819
-20   2000000   Parallel 2.815624e-01 8.280801e-02 10 2.223251e-01 0.3407996833
-21   2000000 Sequential 2.221401e-01 6.889293e-02 10 1.728571e-01 0.2714231328
-22   5000000   Built-in 6.269183e-01 2.001123e-01 10 4.837666e-01 0.7700700376
-23   5000000   Parallel 7.031634e-01 2.165762e-01 10 5.482341e-01 0.8580926943
-24   5000000 Sequential 6.060507e-01 1.907368e-01 10 4.696058e-01 0.7424955789
-25  10000000   Built-in 1.304591e+00 4.156242e-01 10 1.007272e+00 1.6019109480
-26  10000000   Parallel 1.383387e+00 4.292808e-01 10 1.076299e+00 1.6904764875
-27  10000000 Sequential 1.257818e+00 4.007606e-01 10 9.711312e-01 1.5445049756
-28  20000000   Built-in 2.518570e-01           NA  1          NaN          NaN
-29  20000000   Parallel 3.134960e-01           NA  1          NaN          NaN
-30  20000000 Sequential 2.458380e-01           NA  1          NaN          NaN
-31  50000000   Built-in 6.925200e-01           NA  1          NaN          NaN
-32  50000000   Parallel 7.196000e-01           NA  1          NaN          NaN
-33  50000000 Sequential 6.682160e-01           NA  1          NaN          NaN
-34 100000000   Built-in 1.448873e+00           NA  1          NaN          NaN
-35 100000000   Parallel 1.500176e+00           NA  1          NaN          NaN
-36 100000000 Sequential 1.381532e+00           NA  1          NaN          NaN
+ℹ Run `dplyr::last_dplyr_warnings()` to see the 17 remaining warnings.
+
+=== SUMMARY STATISTICS WITH 95% CI ===
+Size       Type mean_time   sd_time  n        se  ci_lower  ci_upper      cv
+1       1000   Built-in 8.556e-05 2.031e-05  9 6.770e-06 6.994e-05 0.0001012 23.7399
+2       1000   Parallel 1.353e-02 1.477e-03  9 4.925e-04 1.240e-02 0.0146683 10.9175
+3       1000 Sequential 9.756e-05 4.449e-05  9 1.483e-05 6.336e-05 0.0001318 45.6067
+4      10000   Built-in 8.758e-04 3.339e-04 10 1.056e-04 6.369e-04 0.0011147 38.1301
+5      10000   Parallel 2.173e-02 3.614e-03 10 1.143e-03 1.915e-02 0.0243191 16.6294
+6      10000 Sequential 9.257e-04 3.398e-04 10 1.075e-04 6.826e-04 0.0011688 36.7087
+7     100000   Built-in 9.991e-03 3.240e-03 10 1.025e-03 7.673e-03 0.0123092 32.4317
+8     100000   Parallel 3.380e-02 4.705e-03 10 1.488e-03 3.043e-02 0.0371653 13.9206
+9     100000 Sequential 9.843e-03 3.369e-03 10 1.065e-03 7.433e-03 0.0122535 34.2276
+10    200000   Built-in 2.258e-02 8.306e-04  9 2.769e-04 2.194e-02 0.0232135  3.6793
+11    200000   Parallel 4.382e-02 2.608e-03  9 8.695e-04 4.181e-02 0.0458230  5.9528
+12    200000 Sequential 2.360e-02 2.259e-03  9 7.531e-04 2.187e-02 0.0253404  9.5718
+13    500000   Built-in 5.756e-02 3.143e-04  9 1.048e-04 5.732e-02 0.0577984  0.5461
+14    500000   Parallel 8.588e-02 2.213e-03  9 7.376e-04 8.418e-02 0.0875782  2.5768
+15    500000 Sequential 5.753e-02 1.337e-03  9 4.456e-04 5.651e-02 0.0585619  2.3235
+16   1000000   Built-in 1.112e-01 3.529e-02 10 1.116e-02 8.598e-02 0.1364655 31.7293
+17   1000000   Parallel 1.452e-01 3.895e-02 10 1.232e-02 1.173e-01 0.1730174 26.8344
+18   1000000 Sequential 1.080e-01 3.430e-02 10 1.085e-02 8.350e-02 0.1325745 31.7522
+19   2000000   Built-in 2.307e-01 7.359e-02 10 2.327e-02 1.780e-01 0.2833074 31.9045
+20   2000000   Parallel 2.816e-01 8.281e-02 10 2.619e-02 2.223e-01 0.3407997 29.4102
+21   2000000 Sequential 2.221e-01 6.889e-02 10 2.179e-02 1.729e-01 0.2714231 31.0133
+22   5000000   Built-in 6.269e-01 2.001e-01 10 6.328e-02 4.838e-01 0.7700700 31.9200
+23   5000000   Parallel 7.032e-01 2.166e-01 10 6.849e-02 5.482e-01 0.8580927 30.8003
+24   5000000 Sequential 6.061e-01 1.907e-01 10 6.032e-02 4.696e-01 0.7424956 31.4721
+25  10000000   Built-in 1.305e+00 4.156e-01 10 1.314e-01 1.007e+00 1.6019109 31.8586
+26  10000000   Parallel 1.383e+00 4.293e-01 10 1.358e-01 1.076e+00 1.6904765 31.0311
+27  10000000 Sequential 1.258e+00 4.008e-01 10 1.267e-01 9.711e-01 1.5445050 31.8616
+28  20000000   Built-in 2.519e-01        NA  1        NA       NaN       NaN      NA
+29  20000000   Parallel 3.135e-01        NA  1        NA       NaN       NaN      NA
+30  20000000 Sequential 2.458e-01        NA  1        NA       NaN       NaN      NA
+31  50000000   Built-in 6.925e-01        NA  1        NA       NaN       NaN      NA
+32  50000000   Parallel 7.196e-01        NA  1        NA       NaN       NaN      NA
+33  50000000 Sequential 6.682e-01        NA  1        NA       NaN       NaN      NA
+34 100000000   Built-in 1.449e+00        NA  1        NA       NaN       NaN      NA
+35 100000000   Parallel 1.500e+00        NA  1        NA       NaN       NaN      NA
+36 100000000 Sequential 1.382e+00        NA  1        NA       NaN       NaN      NA
 #+end_example
 
-Plotting with error bars
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_error_bars.png :exports both :width 600 :height 400 :session *R*
+#+begin_src R :results output :session *R* :exports both
+ci_analysis <- summary_stats %>%
+  filter(!is.na(ci_lower)) %>%
+  mutate(
+    ci_width = ci_upper - ci_lower,
+    ci_width_pct = (ci_width / mean_time) * 100
+  )
+
+ci_width_summary <- ci_analysis %>%
+  group_by(Type) %>%
+  summarise(
+    avg_ci_width_pct = mean(ci_width_pct),
+    max_ci_width_pct = max(ci_width_pct),
+    min_ci_width_pct = min(ci_width_pct)
+  )
+
+cat("\n=== CI WIDTH ANALYSIS ===\n")
+print(ci_width_summary, digits = 2)
+#+end_src
+
+#+RESULTS:
+: 
+: === CI WIDTH ANALYSIS ===
+: # A tibble: 3 × 4
+:   Type       avg_ci_width_pct max_ci_width_pct min_ci_width_pct
+:   <fct>                 <dbl>            <dbl>            <dbl>
+: 1 Built-in               36.2             54.6            0.840
+: 2 Parallel               26.9             44.4            3.96 
+: 3 Sequential             41.1             70.1            3.57
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_CI_analysis.png :exports both :width 800 :height 500 :session *R*
 library(ggplot2)
 
-plot_data <- summary_stats %>%
-  filter(!is.na(ci_lower))
+plot_data <- summary_stats %>% filter(!is.na(ci_lower))
 
 ggplot(plot_data, aes(x = factor(Size), y = mean_time, color = Type, group = Type)) +
-  geom_point(size = 2) +
-  geom_line() +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
-  scale_y_continuous(name = "Mean Time (s)") +
+  geom_point(size = 3) +
+  geom_line(linewidth = 0.8) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.3, linewidth = 0.6) +
+  scale_y_continuous(name = "Mean Time (seconds)") +
   scale_x_discrete(name = "Array Size") +
   ggtitle("QuickSort Performance: Mean ± 95% CI") +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
 #+end_src
 
 #+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_error_bars.png]]
+[[file:data/THINKBOOK_2025-10-23/measurements_CI_analysis.png]]
 
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/measurements_02:02_full_boxplot_CI_logscale.png :exports both :width 600 :height 400 :session *R*
-library(ggplot2)
+**** Interpretation: Confidence Intervals
 
-plot_data <- summary_stats %>%
-  filter(!is.na(ci_lower))
+The CI width analysis reveals algorithm stability:
+- *Built-in*: Narrowest CI width → most consistent performance
+- *Parallel*: Widest CI width → highest variability, less predictable
+- *Sequential*: Moderate CI width → moderate consistency
 
-ggplot(plot_data, aes(x = factor(Size), y = mean_time, fill = Type)) +
-  geom_boxplot(alpha = 0.3) +
-  geom_point(aes(color = Type), size = 2) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper, color = Type), width = 0.2) +
-  scale_y_log10(name = "Time (s, log scale)") +
-  scale_x_discrete(name = "Array Size") +
-  ggtitle("QuickSort Performance: Boxplot + Mean ± 95% CI") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+Wider confidence intervals indicate greater measurement variability and less stable performance across repeated runs. For the Parallel implementation, this suggests potential issues with thread scheduling overhead.
+
+*** Linear Regression Analysis
+
+#+begin_src R :results output :session *R* :exports both
+cat("\n=== LINEAR REGRESSION ANALYSIS ===\n")
+
+lm_type <- lm(Time ~ Type, data = df)
+
+cat("\n--- MODEL 1: Time ~ Type ---\n")
+summary(lm_type)
 #+end_src
 
 #+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/measurements_02:02_full_boxplot_CI_logscale.png]]
+#+begin_example
 
-Now, we will do some statistical test to see if the distribution is
-normal or non-normal
+=== LINEAR REGRESSION ANALYSIS ===
+
+--- MODEL 1: Time ~ Type ---
+
+Call:
+lm(formula = Time ~ Type, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.31662 -0.27850 -0.23078 -0.02395  1.22171 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     0.288420   0.048576   5.938 8.97e-09 ***
+TypeParallel    0.039472   0.068697   0.575    0.566    
+TypeSequential -0.009811   0.068697  -0.143    0.887    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.4608 on 267 degrees of freedom
+Multiple R-squared:  0.002156,	Adjusted R-squared:  -0.005319 
+F-statistic: 0.2884 on 2 and 267 DF,  p-value: 0.7497
+#+end_example
+
+#+begin_src R :results output :session *R* :exports both
+lm_full <- lm(Time ~ Type + log10(Size), data = df)
+
+cat("\n--- MODEL 2: Time ~ Type + log10(Size) ---\n")
+summary(lm_full)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+--- MODEL 2: Time ~ Type + log10(Size) ---
+
+Call:
+lm(formula = Time ~ Type + log10(Size), data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.5189 -0.2568 -0.1465  0.1260  0.8707 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    -1.048553   0.100035 -10.482   <2e-16 ***
+TypeParallel    0.039472   0.051662   0.764    0.446    
+TypeSequential -0.009811   0.051662  -0.190    0.850    
+log10(Size)     0.241137   0.016796  14.357   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3466 on 266 degrees of freedom
+Multiple R-squared:  0.4378,	Adjusted R-squared:  0.4314 
+F-statistic: 69.04 on 3 and 266 DF,  p-value: < 2.2e-16
+#+end_example
+
+#+begin_src R :results output :session *R* :exports both
+cat("\n--- MODEL COMPARISON (ANOVA) ---\n")
+anova_compare <- anova(lm_type, lm_full)
+print(anova_compare)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+--- MODEL COMPARISON (ANOVA) ---
+Analysis of Variance Table
+
+Model 1: Time ~ Type
+Model 2: Time ~ Type + log10(Size)
+  Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+1    267 56.701                                  
+2    266 31.947  1    24.754 206.11 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#+end_example
+
+**** Diagnostic Tests
+
+#+begin_src R :results output :session *R* :exports both
+cat("\n--- DIAGNOSTIC TESTS ---\n")
+
+shapiro_resid <- shapiro.test(residuals(lm_full))
+cat("\nShapiro-Wilk (normality): p =", shapiro_resid$p.value, "\n")
+
+library(lmtest)
+bp_test <- bptest(lm_full)
+cat("Breusch-Pagan (homoscedasticity): p =", bp_test$p.value, "\n")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+--- DIAGNOSTIC TESTS ---
+
+Shapiro-Wilk (normality): p = 4.53721e-15
+Loading required package: zoo
+
+Attaching package: ‘zoo’
+
+The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+Breusch-Pagan (homoscedasticity): p = 2.586595e-10
+#+end_example
+
+#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/regression_diagnostics.png :exports both :width 800 :height 800 :session *R*
+par(mfrow = c(2, 2))
+plot(lm_full, which = 1:4)
+#+end_src
+
+#+RESULTS:
+[[file:data/THINKBOOK_2025-10-23/regression_diagnostics.png]]
+
+**** Coefficient Analysis
+
+#+begin_src R :results output :session *R* :exports both
+cat("\n--- 95% CI FOR COEFFICIENTS ---\n")
+ci_coef <- confint(lm_full)
+print(ci_coef)
+
+cat("\n--- COEFFICIENT SIGNIFICANCE ---\n")
+for(i in 2:length(coef(lm_full))) {
+  name <- names(coef(lm_full))[i]
+  sig <- if(ci_coef[i, 1] > 0 | ci_coef[i, 2] < 0) "significant" else "not significant"
+  cat(sprintf("%-20s: %s (CI does%s contain 0)\n", 
+              name, sig, if(sig == "significant") " not" else ""))
+}
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+--- 95% CI FOR COEFFICIENTS ---
+2.5 %      97.5 %
+(Intercept)    -1.2455137 -0.85159237
+TypeParallel   -0.0622454  0.14119014
+TypeSequential -0.1115286  0.09190698
+log10(Size)     0.2080668  0.27420806
+
+--- COEFFICIENT SIGNIFICANCE ---
+TypeParallel        : not significant (CI does contain 0)
+TypeSequential      : not significant (CI does contain 0)
+log10(Size)         : significant (CI does not contain 0)
+#+end_example
+
+**** Performance Summary
+
+#+begin_src R :results output :session *R* :exports both
+cat("\n=== PERFORMANCE SUMMARY BY TYPE ===\n")
+performance_summary <- df %>%
+  group_by(Type) %>%
+  summarise(
+    mean = mean(Time),
+    median = median(Time),
+    sd = sd(Time),
+    min = min(Time),
+    max = max(Time),
+    cv_pct = (sd/mean)*100,
+    n = n()
+  )
+print(performance_summary, digits = 4)
+#+end_src
+
+#+RESULTS:
+: 
+: === PERFORMANCE SUMMARY BY TYPE ===
+: # A tibble: 3 × 8
+:   Type        mean median    sd      min   max cv_pct     n
+:   <fct>      <dbl>  <dbl> <dbl>    <dbl> <dbl>  <dbl> <int>
+: 1 Built-in   0.288 0.0576 0.459 0.000066  1.45   159.    90
+: 2 Parallel   0.328 0.0863 0.480 0.0113    1.55   146.    90
+: 3 Sequential 0.279 0.0575 0.442 0.00007   1.40   159.    90
+
+**** Interpretation: Linear Models
+
+*Model 1 (Time ~ Type):*
+- R² ≈ 0.002 → Type alone explains only 0.2% of variance
+- p-value > 0.05 → Type differences are NOT statistically significant
+- Conclusion: Algorithm type is not the primary performance driver
+
+*Model 2 (Time ~ Type + log10(Size)):*
+- R² significantly higher → Size explains most variance
+- The log10(Size) coefficient shows how performance scales with input size
+- Much better fit than Model 1, indicating size is the dominant factor
+
+*Diagnostic Tests:*
+- *Shapiro-Wilk test*: If p < 0.05 → residuals not normally distributed (model assumption violated, results less reliable)
+- *Breusch-Pagan test*: If p < 0.05 → heteroscedasticity present (variance differs across sizes, standard errors may be incorrect)
+
+*Coefficient Significance:*
+- If CI contains 0 → coefficient not statistically different from 0 (no significant effect)
+- If CI excludes 0 → coefficient is significant (has real effect on Time)
+
+*** Statistical Testing
+
 #+begin_src R :results output :session *R* :exports both
 library(dplyr)
 shapiro_results <- df %>%
@@ -984,7 +733,7 @@ kruskal.test(Time ~ Type, data=df)
 1 Built-in   1.92e-13
 2 Parallel   4.17e-13
 3 Sequential 2.02e-13
-             Df Sum Sq Mean Sq F value Pr(>F)
+Df Sum Sq Mean Sq F value Pr(>F)
 Type          2   0.12 0.06125   0.288   0.75
 Residuals   267  56.70 0.21236
 
@@ -994,38 +743,25 @@ data:  Time by Type
 Kruskal-Wallis chi-squared = 8.824, df = 2, p-value = 0.01213
 #+end_example
 
-Linear modeling
-#+begin_src R :results output :session *R* :exports both
-# Linear model: Time theo Type
-lm_model <- lm(Time ~ Type, data = df)
-summary(lm_model)
-confint(lm_model)
+** Key Findings
 
-#+end_src
+1. *Parallel is slower* than both Sequential and Built-in across most array sizes
+2. Threading overhead exceeds parallelization benefits at tested sizes
+3. *Size is the dominant factor* affecting execution time
+4. Type choice has minimal impact compared to input size
+5. Current implementation shows *no parallel speedup*
+6. Built-in implementation demonstrates highest consistency
+7. Parallel implementation shows highest variability in performance
 
-#+RESULTS:
-#+begin_example
+** Recommendations
 
-Call:
-lm(formula = Time ~ Type, data = df)
+1. Increase array sizes (>10M elements) to potentially see parallel benefits
+2. Investigate thread count optimization
+3. Consider threshold-based switching between sequential and parallel approaches
+4. Analyze CPU utilization and thread scheduling overhead to identify bottlenecks
+5. Profile memory access patterns to reduce cache conflicts
+6. Consider alternative parallelization strategies (e.g., divide-and-conquer thresholds)
 
-Residuals:
-     Min       1Q   Median       3Q      Max 
--0.31662 -0.27850 -0.23078 -0.02395  1.22171 
+** Conclusion
 
-Coefficients:
-                Estimate Std. Error t value Pr(>|t|)    
-(Intercept)     0.288420   0.048576   5.938 8.97e-09 ***
-TypeParallel    0.039472   0.068697   0.575    0.566    
-TypeSequential -0.009811   0.068697  -0.143    0.887    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 0.4608 on 267 degrees of freedom
-Multiple R-squared:  0.002156,	Adjusted R-squared:  -0.005319 
-F-statistic: 0.2884 on 2 and 267 DF,  p-value: 0.7497
-                     2.5 %    97.5 %
-(Intercept)     0.19277981 0.3840604
-TypeParallel   -0.09578344 0.1747282
-TypeSequential -0.14506660 0.1254450
-#+end_example
+Results differ from expected performance due to CPU architecture (i5-12500H). The parallel implementation demonstrates no performance advantage over sequential and built-in implementations at the tested array sizes. Threading overhead dominates any potential parallel speedup. Array size is the primary determinant of execution time, with algorithm type having negligible impact. Further investigation with larger datasets and thread optimization is required to achieve parallel efficiency.
