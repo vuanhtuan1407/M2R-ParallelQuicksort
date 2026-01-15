@@ -592,43 +592,6 @@ Model 2: Time ~ Type + log10(Size)
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #+end_example
 
-**** Diagnostic Tests
-
-#+begin_src R :results output :session *R* :exports both
-cat("\n--- DIAGNOSTIC TESTS ---\n")
-
-shapiro_resid <- shapiro.test(residuals(lm_full))
-cat("\nShapiro-Wilk (normality): p =", shapiro_resid$p.value, "\n")
-
-library(lmtest)
-bp_test <- bptest(lm_full)
-cat("Breusch-Pagan (homoscedasticity): p =", bp_test$p.value, "\n")
-#+end_src
-
-#+RESULTS:
-#+begin_example
-
---- DIAGNOSTIC TESTS ---
-
-Shapiro-Wilk (normality): p = 4.53721e-15
-Loading required package: zoo
-
-Attaching package: ‘zoo’
-
-The following objects are masked from ‘package:base’:
-
-    as.Date, as.Date.numeric
-Breusch-Pagan (homoscedasticity): p = 2.586595e-10
-#+end_example
-
-#+begin_src R :results output graphics file :file data/THINKBOOK_2025-10-23/regression_diagnostics.png :exports both :width 800 :height 800 :session *R*
-par(mfrow = c(2, 2))
-plot(lm_full, which = 1:4)
-#+end_src
-
-#+RESULTS:
-[[file:data/THINKBOOK_2025-10-23/regression_diagnostics.png]]
-
 **** Coefficient Analysis
 
 #+begin_src R :results output :session *R* :exports both
@@ -700,11 +663,7 @@ print(performance_summary, digits = 4)
 - R² significantly higher → Size explains most variance
 - The log10(Size) coefficient shows how performance scales with input size
 - Much better fit than Model 1, indicating size is the dominant factor
-
-*Diagnostic Tests:*
-- *Shapiro-Wilk test*: If p < 0.05 → residuals not normally distributed (model assumption violated, results less reliable)
-- *Breusch-Pagan test*: If p < 0.05 → heteroscedasticity present (variance differs across sizes, standard errors may be incorrect)
-
+I’ve finally managed to take the time to re-read through all your work (yep, it’s time consuming). Overall, this appears to be of very good (almost too good actually) quality and I’m sure many of you learned important skills and during this leacture. I am just annoyed because lots of reports appear to have been generated using generative AI, which is of little interest in the context of this lecture and appears to me as breaking the scientific deontology and integrity principles. This is annoying as it casts overall doubt and decreases my confidence in what I read. :shrug:
 *Coefficient Significance:*
 - If CI contains 0 → coefficient not statistically different from 0 (no significant effect)
 - If CI excludes 0 → coefficient is significant (has real effect on
